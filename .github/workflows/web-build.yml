@@ -26,7 +26,7 @@ env:
   BUILD_NAME: Itchio-Github-Unity-CI
   RELEASE_NAME: Itchio-Github-Unity-CI
   BUTLER_PATH: ./butler_folder
-  UNITY_VERSION: ''
+  UNITY_VERSION: test
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
