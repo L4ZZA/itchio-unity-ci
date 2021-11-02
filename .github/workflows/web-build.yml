@@ -4,30 +4,33 @@
 
 # This is a basic workflow to help you get started with Actions
 
-name: Linux License Request
+name: CI
 
 # manually 
 # https://github.blog/changelog/2020-07-06-github-actions-manual-triggers-with-workflow_dispatch/
 # on: [ workflow_dispatch ]
-# https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onpushpull_requestbranchestags
+# https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onpushpull_requestpaths
 on:
   push:
-    exlude_paths:
-      - unity-version.txt
+    paths:
+      - '.github/workflows/**'
+      - 'Assets/**'
+      - 'unity-version.txt'
 
 env:
   VERSIONING_FILE_PATH: "unity-version.txt"
   BUTLER_API_KEY: ${{ secrets.BUTLER_CREDENTIALS }}
   BUILD_OUTPUT_PATH: build
-  ITCHIO_GAME: itch-github-ci
+  ITCHIO_GAME: itchio-github-ci
   ITCHIO_USER: L4ZZA
   BUILD_NAME: Itchio-Github-Unity-CI
   RELEASE_NAME: Itchio-Github-Unity-CI
   BUTLER_PATH: ./butler_folder
+  UNITY_VERSION: ''
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build:
+  unity_build:
     name: Web Build and deployment
     runs-on: ubuntu-latest
     strategy:
@@ -41,14 +44,28 @@ jobs:
           #- StandaloneOSX
         butlerChannel:
           - html5
+    # Map a step output to a job output
+    # outputs:
+    #   unityVersion: ${{ steps.version_output.outputs.unityVersion }}
 
-  # https://unity-ci.com/docs/github/activation
-  activation:
-    name: Web Build and deployment
-    runs-on: ubuntu-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      # Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: Current folder path
+        run: pwd
+
+      - name: Directory content before build
+        run: ls -al
+
+      # Cache
+      - uses: actions/cache@v1.1.0
+        with:
+          path: Library
+          key: Library-${{ matrix.targetPlatform }}
 
       # Get Unity version from file
       - name: Read file contents
@@ -56,6 +73,10 @@ jobs:
         uses: andstor/file-reader-action@v1
         with:
           path: ${{ env.VERSIONING_FILE_PATH }}
+
+      # - name: Set job outputs
+      #   id: version_output
+      #   run: echo "::set-output name=unityVersion::${{ steps.read_file.outputs.contents }}"
       
       - name: Version from file
         run: echo ${{ steps.read_file.outputs.contents }}
@@ -65,21 +86,30 @@ jobs:
 
       - name: Version from  env.variable
         run: echo "${{ env.UNITY_VERSION }}"
+        
+      - name: Directory content after build
+        run: ls -al
+        
+      - name: Tree structure
+        run: |
+          sudo apt-get install tree
+          tree ${{ env.BUILD_OUTPUT_PATH }}
 
-      - Building game
+      - name: Building game
         uses: game-ci/unity-builder@v2
         env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
+          # Path where the builds should be stored.
+          buildsPath: ${{ env.BUILD_OUTPUT_PATH}}
+          buildName: ${{ env.BUILD_NAME}}
           # Version of unity to use for building the project.
           unityVersion: ${{ env.UNITY_VERSION }}
-          # Path where the builds should be stored.
-          buildsPath: ${{ env.BUILD_OUTPUT_PATH }}
-          buildName: ${{ env.BUILD_NAME }}
           # Platform that the build should target.
           targetPlatform: ${{ matrix.targetPlatform }}
+          # Custom parameters to configure the build.
+          # Parameters must start with a hyphen (-) and may be followed by a value (without hyphen). Parameters without a value will be considered booleans (with a value of true).
+          # customParameters: '-nographics' # <--- This is the important bit [https://github.com/webbertakken/unity-builder/issues/153]
 
       - name: Directory content after build
         run: ls -al
@@ -96,6 +126,16 @@ jobs:
           name: ${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ env.UNITY_VERSION }}
           path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
 
+  butler_push:
+    needs: [unity_build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Build
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ env.UNITY_VERSION }}
+          path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
+
       - name: Butler Push
         uses: josephbmanley/butler-publish-itchio-action@master
         env:
@@ -103,7 +143,32 @@ jobs:
           CHANNEL: ${{ matrix.butlerChannel }}
           ITCH_GAME: ${{ env.ITCHIO_GAME }}
           ITCH_USER: ${{ env.ITCHIO_USER }}
-          PACKAGE: build/${{ matrix.targetPlatform }}
+          # PACKAGE: build/${{ matrix.targetPlatform }}
+          PACKAGE: build/WebGL
 
+      ## manual butler setup [alternative]
+
+      # - name: Butler download
+      #   run: |
+      #     # -L follows redirects
+      #     # -O specifies output name
+      #     # -s hides all errors and the progress bar
+      #     # -S tells curl to be silent, except when there is an error
+      #     curl -S -s -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+
+      # - name: Butler Unzip
+      #   run: unzip butler.zip -d butler_folder
+
+      # - name: Make Butler executable
+      #   # GNU unzip tends to not set the executable bit even though it's set in the .zip
+      #   # mark extracted file as executable
+      #   run: chmod +x ${{ env.BUTLER_PATH }}/butler
+
+      # - name: Butler test run
+      #   # just a sanity check run (and also helpful in case you're sharing CI logs)
+      #   run: ${{ env.BUTLER_PATH }}/butler -V
+
+      # - name: Directory content after Butler Download
+      #   run: tree
 
       # TODO - Create release https://github.com/marketplace/actions/upload-a-release-asset
