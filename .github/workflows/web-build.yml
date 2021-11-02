@@ -157,6 +157,8 @@ jobs:
           ITCH_USER: ${{ env.ITCHIO_USER }}
           PACKAGE: build/${{ matrix.targetPlatform }}
 
+      # testing new api key for butler
+
       ## manual butler setup [alternative]
 
       # - name: Butler download
