@@ -26,7 +26,7 @@ env:
   BUILD_NAME: Itchio-Github-Unity-CI
   RELEASE_NAME: Itchio-Github-Unity-CI
   BUTLER_PATH: ./butler_folder
-  UNITY_VERSION: test
+  UNITY_VERSION: 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -45,8 +45,8 @@ jobs:
         butlerChannel:
           - html5
     # Map a step output to a job output
-    # outputs:
-    #   unityVersion: ${{ steps.version_output.outputs.unityVersion }}
+    outputs:
+      unityVersion: ${{ steps.version_output.outputs.unityVersion }}
 
     steps:
       # Checkout
@@ -74,9 +74,9 @@ jobs:
         with:
           path: ${{ env.VERSIONING_FILE_PATH }}
 
-      # - name: Set job outputs
-      #   id: version_output
-      #   run: echo "::set-output name=unityVersion::${{ steps.read_file.outputs.contents }}"
+      - name: Set job outputs
+        id: version_output
+        run: echo "::set-output name=unityVersion::${{ steps.read_file.outputs.contents }}"
       
       - name: Version from file
         run: echo ${{ steps.read_file.outputs.contents }}
@@ -129,11 +129,23 @@ jobs:
   butler_push:
     needs: [unity_build]
     runs-on: ubuntu-latest
+    strategy:
+      # fail-fast: false
+      matrix:
+        targetPlatform:
+          - WebGL
+          # - StandaloneLinux64
+          #- StandaloneWindows64
+          #- StandaloneWindows
+          #- StandaloneOSX
+        butlerChannel:
+          - html5
+
     steps:
       - name: Download Build
         uses: actions/download-artifact@v2
         with:
-          name: ${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ env.UNITY_VERSION }}
+          name: ${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ needs.unity_build.outputs.unityVersion }}
           path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
 
       - name: Butler Push
@@ -143,8 +155,7 @@ jobs:
           CHANNEL: ${{ matrix.butlerChannel }}
           ITCH_GAME: ${{ env.ITCHIO_GAME }}
           ITCH_USER: ${{ env.ITCHIO_USER }}
-          # PACKAGE: build/${{ matrix.targetPlatform }}
-          PACKAGE: build/WebGL
+          PACKAGE: build/${{ matrix.targetPlatform }}
 
       ## manual butler setup [alternative]
 
