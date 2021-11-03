@@ -136,40 +136,40 @@ jobs:
       
       ## manual butler setup [alternative]
 
-      - name: Butler download
-        run: |
-          # -L follows redirects
-          # -O specifies output name
-          # -s hides all errors and the progress bar
-          # -S tells curl to be silent, except when there is an error
-          curl -S -s -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+      # - name: Butler download
+      #   run: |
+      #     # -L follows redirects
+      #     # -O specifies output name
+      #     # -s hides all errors and the progress bar
+      #     # -S tells curl to be silent, except when there is an error
+      #     curl -S -s -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
 
-      - name: Butler Unzip
-        run: unzip butler.zip -d ${{ env.BUTLER_PATH }}
+      # - name: Butler Unzip
+      #   run: unzip butler.zip -d ${{ env.BUTLER_PATH }}
 
-      - name: Make Butler executable
-        # GNU unzip tends to not set the executable bit even though it's set in the .zip
-        # mark extracted file as executable
-        run: chmod +x ${{ env.BUTLER_PATH }}/butler
+      # - name: Make Butler executable
+      #   # GNU unzip tends to not set the executable bit even though it's set in the .zip
+      #   # mark extracted file as executable
+      #   run: chmod +x ${{ env.BUTLER_PATH }}/butler
 
-      - name: Butler test run
-        # just a sanity check run (and also helpful in case you're sharing CI logs)
-        run: ${{ env.BUTLER_PATH }}/butler -V
+      # - name: Butler test run
+      #   # just a sanity check run (and also helpful in case you're sharing CI logs)
+      #   run: ${{ env.BUTLER_PATH }}/butler -V
 
-      - name: Butler login
-        # just a sanity check run (and also helpful in case you're sharing CI logs)
-        run: ${{ env.BUTLER_PATH }}/butler login
+      # - name: Butler login
+      #   # just a sanity check run (and also helpful in case you're sharing CI logs)
+      #   run: ${{ env.BUTLER_PATH }}/butler login
 
-      - name: Directory content after Butler Download
-        run: tree
+      # - name: Directory content after Butler Download
+      #   run: tree
 
-      # - name: Butler Push
-      #   uses: josephbmanley/butler-publish-itchio-action@master
-      #   env:
-      #     BUTLER_CREDENTIALS: ${{ env.BUTLER_API_KEY }}
-      #     CHANNEL: ${{ matrix.butlerChannel }}
-      #     ITCH_GAME: ${{ env.ITCHIO_GAME }}
-      #     ITCH_USER: ${{ env.ITCHIO_USER }}
-      #     PACKAGE: build/${{ matrix.targetPlatform }}
+      - name: Butler Push
+        uses: josephbmanley/butler-publish-itchio-action@master
+        env:
+          BUTLER_CREDENTIALS: ${{ env.BUTLER_API_KEY }}
+          CHANNEL: ${{ matrix.butlerChannel }}
+          ITCH_GAME: ${{ env.ITCHIO_GAME }}
+          ITCH_USER: ${{ env.ITCHIO_USER }}
+          PACKAGE: build/${{ matrix.targetPlatform }}
 
       # TODO - Create release https://github.com/marketplace/actions/upload-a-release-asset
