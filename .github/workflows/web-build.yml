@@ -13,11 +13,10 @@ name: CI
 on:
   push:
     paths:
+      - '!.github/workflows/license-request.yml'
       - '.github/workflows/**'
       - 'Assets/**'
       - 'unity-version.txt'
-    paths-ignore:
-      - '.github/workflows/license-request.yml'
 
 env:
   VERSIONING_FILE_PATH: "unity-version.txt"
@@ -155,6 +154,10 @@ jobs:
       - name: Butler test run
         # just a sanity check run (and also helpful in case you're sharing CI logs)
         run: ${{ env.BUTLER_PATH }}/butler -V
+
+      - name: Butler login
+        # just a sanity check run (and also helpful in case you're sharing CI logs)
+        run: ${{ env.BUTLER_PATH }}/butler login
 
       - name: Directory content after Butler Download
         run: tree
