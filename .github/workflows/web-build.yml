@@ -28,7 +28,6 @@ env:
   BUILD_NAME: Itchio-Github-Unity-CI
   RELEASE_NAME: Itchio-Github-Unity-CI
   BUTLER_PATH: ./butler_folder
-  UNITY_VERSION: 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -129,18 +128,36 @@ jobs:
           sudo apt-get install tree
           tree ${{ env.BUILD_OUTPUT_PATH }}
 
-      # # Output
-      # - name: Archive
-      #   uses: actions/upload-artifact@v1
-      #   with:
-      #     name: ${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ env.UNITY_VERSION }}
-      #     path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
+      # Output
+      - name: Archive
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ BUILD_ARTIFACT_NAME }}
+          path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
 
-      # - name: Download Build
-      #   uses: actions/download-artifact@v2
-      #   with:
-      #     name: ${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ needs.unity_build.outputs.unityVersion }}
-      #     path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
+  butler_push:
+    name: Push to Itch.io
+    needs: [unity_build]
+    runs-on: ubuntu-latest
+    strategy:
+      # fail-fast: false
+      matrix:
+        targetPlatform:
+          - WebGL
+          # - StandaloneLinux64
+          # - StandaloneWindows64
+          #- StandaloneWindows
+          #- StandaloneOSX
+        butlerChannel:
+          - html5
+          # - windows
+
+    steps:
+      - name: Download Build
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.unity_build.outputs.buildArtifact }}
+          path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
       
       ## manual butler setup [alternative]
 
