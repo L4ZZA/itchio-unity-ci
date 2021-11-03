@@ -14,9 +14,10 @@ on:
   push:
     paths:
       - '.github/workflows/**'
-      - '!.github/workflows/license-request.yml'
       - 'Assets/**'
       - 'unity-version.txt'
+    paths-ignore:
+      - '.github/workflows/license-request.yml'
 
 env:
   VERSIONING_FILE_PATH: "unity-version.txt"
