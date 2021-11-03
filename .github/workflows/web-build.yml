@@ -21,7 +21,7 @@ on:
 
 env:
   VERSIONING_FILE_PATH: "unity-version.txt"
-  BUTLER_API_KEY: ${{ secrets.BUTLER_CREDENTIALS }}
+  BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
   BUILD_OUTPUT_PATH: build
   ITCHIO_GAME: itchio-github-ci
   ITCHIO_USER: L4ZZA
