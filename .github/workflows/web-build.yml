@@ -49,6 +49,7 @@ jobs:
     # Map a step output to a job output
     outputs:
       unityVersion: ${{ steps.version_output.outputs.unityVersion }}
+      buildArtifact: ${{ steps.artifact_output.outputs.buildArtifactName }}
 
     steps:
       # Checkout
@@ -75,20 +76,27 @@ jobs:
         uses: andstor/file-reader-action@v1
         with:
           path: ${{ env.VERSIONING_FILE_PATH }}
-
-      - name: Set job outputs
-        id: version_output
-        run: echo "::set-output name=unityVersion::${{ steps.read_file.outputs.contents }}"
       
       - name: Version from file
         run: echo ${{ steps.read_file.outputs.contents }}
 
+      - name: Set job outputs - unityVersion
+        id: version_output
+        run: echo "::set-output name=unityVersion::${{ steps.read_file.outputs.contents }}"
+
       - name: Setting Unity version env variable
         run: echo "UNITY_VERSION=${{ steps.read_file.outputs.contents }}" >> $GITHUB_ENV
 
-      - name: Version from  env.variable
+      - name: Version from env.variable
         run: echo "${{ env.UNITY_VERSION }}"
+
+      - name: Setting Artifact name env variable
+        run: echo "BUILD_ARTIFACT_NAME=${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ env.UNITY_VERSION }}-${{ env.GITHUB_RUN_NUMBER }}" >> $GITHUB_ENV
         
+      - name: Set job outputs - unityVersion
+        id: artifact_output
+        run: echo "::set-output name=buildArtifactName::${{ BUILD_ARTIFACT_NAME }}"
+
       - name: Directory content after build
         run: ls -al
         
