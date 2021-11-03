@@ -120,18 +120,18 @@ jobs:
           sudo apt-get install tree
           tree ${{ env.BUILD_OUTPUT_PATH }}
 
-      # Output
-      - name: Archive
-        uses: actions/upload-artifact@v1
-        with:
-          name: ${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ env.UNITY_VERSION }}
-          path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
+      # # Output
+      # - name: Archive
+      #   uses: actions/upload-artifact@v1
+      #   with:
+      #     name: ${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ env.UNITY_VERSION }}
+      #     path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
 
-      - name: Download Build
-        uses: actions/download-artifact@v2
-        with:
-          name: ${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ needs.unity_build.outputs.unityVersion }}
-          path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
+      # - name: Download Build
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: ${{ env.RELEASE_NAME }}-${{ matrix.targetPlatform }}-${{ needs.unity_build.outputs.unityVersion }}
+      #     path: ${{ env.BUILD_OUTPUT_PATH }}/${{ matrix.targetPlatform }}
       
       ## manual butler setup [alternative]
 
