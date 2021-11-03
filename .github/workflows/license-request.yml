@@ -11,10 +11,15 @@ name: Linux License Request
 # on: [ workflow_dispatch ]
 # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onpushpull_requestbranchestags
 on:
-  - workflow_dispatch: {}
-  - push:
-      paths:
-        - unity-version.txt
+  workflow_dispatch:
+    inputs:
+      unityVersion:
+        description: 'Unity Version'     
+        required: false
+        default: '2020.3.21f1'
+  push:
+    paths:
+      - unity-version.txt
 
 env:
   VERSIONING_FILE_PATH: "unity-version.txt"
