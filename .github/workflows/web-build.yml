@@ -43,8 +43,7 @@ jobs:
           #- StandaloneWindows64
           #- StandaloneWindows
           #- StandaloneOSX
-        butlerChannel:
-          - html5
+
     # Map a step output to a job output
     outputs:
       unityVersion: ${{ steps.version_output.outputs.unityVersion }}
@@ -53,7 +52,7 @@ jobs:
     steps:
       # Checkout
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           lfs: true
 
@@ -64,27 +63,19 @@ jobs:
         run: ls -al
 
       # Cache
-      - uses: actions/cache@v1.1.0
+      - uses: actions/cache@v3
         with:
           path: Library
           key: Library-${{ matrix.targetPlatform }}
-
+          
       # Get Unity version from file
-      - name: Read file contents
-        id: read_file
-        uses: andstor/file-reader-action@v1
-        with:
-          path: ${{ env.VERSIONING_FILE_PATH }}
-      
-      - name: Version from file
-        run: echo ${{ steps.read_file.outputs.contents }}
+      - name: Get Unity Version
+        uses: Appegy/unity-version-action@v1
 
-      - name: Set job outputs - unityVersion
-        id: version_output
-        run: echo "::set-output name=unityVersion::${{ steps.read_file.outputs.contents }}"
+      - name: Version from env.variable
+        run: echo "${{ env.UNITY_VERSION }}"
 
-      - name: Setting Unity version env variable
-        run: echo "UNITY_VERSION=${{ steps.read_file.outputs.contents }}" >> $GITHUB_ENV
+        # run: echo "UNITY_VERSION=${{ steps.read_file.outputs.contents }}" >> $GITHUB_ENV
 
       - name: Version from env.variable
         run: echo "${{ env.UNITY_VERSION }}"
